@@ -272,6 +272,8 @@ vec2 mainSynth(float time)
     float dL = 0.;
     float dR = 0.;
 
+    time = mod(time, 98.8235);
+    
     int _it;
     for(_it = 0; _it < NTIME - 2 && pos_t[_it + 1] < time; _it++);
     BPS = pos_BPS[_it];

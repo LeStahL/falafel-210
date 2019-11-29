@@ -84,6 +84,7 @@ void dvortex(in vec2 x, out float ret)
 
 void palette(in float scale, out vec3 col)
 {
+    scale = fract(scale);
     const int N = 8;
     const vec3 colors[N] = vec3[N](
             vec3(0.88,0.01,0.42),
@@ -145,7 +146,7 @@ void colorize(in vec2 uv, inout vec3 col)
     n = abs(n)-.01;
     
     vec3 c1;
-    palette(n, c1); 
+    palette(ra*n, c1); 
     
     col = mix(col, c1, sm(d));
     
@@ -168,7 +169,7 @@ void colorize(in vec2 uv, inout vec3 col)
     col = mix(col, 4.*c1, sm((abs(abs(d)-.01)-.001))/mix(1.,10.,1.-scale)); // vortex outline
     col *= mix(1.2,.8, clamp((iTime-13.*spb)/spb,0.,1.));
     
-    col = mix(col, c.yyy, clamp(length(col-vec3(0.40,0.74,0.13)),0.,1.));
+//     col = mix(col, col.brg, clamp(length(col-vec3(0.40,0.74,0.13)),0.,1.));
     //c2 = mix(col, mix(c2, col, r), clamp((iTime-14.*spb)/spb, 0.,1.));
 }
 
