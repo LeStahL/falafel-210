@@ -93,7 +93,38 @@ void palette(in float scale, out vec3 col)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
+    const float bpm = 136.,
+        spb = 60./bpm;
+    float scale = mod(iTime,spb)-.5*spb;
+    scale = smoothstep(-.3*spb, -.1*spb, scale)*(1.-smoothstep(.1*spb, .3*spb, scale));
+    float nbeats = (iTime-mod(iTime, spb))/spb;
+    
     vec2 uv = (fragCoord-.5*iResolution.xy)/iResolution.yy;
+
+    vec2 dis;
+    rand(nbeats*c.xx+1337., dis.x);
+    rand(nbeats*c.xx+2337., dis.y);
+    uv += .1*dis;
+    
+    float size;
+    rand(nbeats*c.xx+3337., size);
+    uv *= 1.+size;
+    
+    float phi = pi/4.+.03*scale*scale*scale;
+    mat2 R = mat2(cos(phi), sin(phi), -sin(phi), cos(phi));
+    uv = mix(uv, R*uv, clamp(iTime-2., 0., 1.));
+    
+    float ra;
+    rand(nbeats*c.xx, ra);
+    ra = floor(1.+4.*ra);
+    
+    vec2 y = vec2(length(uv),atan(uv.y,uv.x));
+    float dphi = mix(pi/2., pi/4., clamp((iTime-8.*spb)/spb,0.,1.));
+    dphi = mix(dphi, pi/ra, clamp((iTime-9.*spb)/spb,0.,1.));
+    y.y = mod(y.y,dphi)-mix(0.,.5*dphi, clamp((iTime-7.*spb)/spb,0.,1.));
+    
+    uv = mix(uv, y.x*vec2(cos(y.y),sin(y.y)), clamp((iTime-2.*spb)/spb,0.,1.));
+    
 	vec3 col = c.yyy;
     uv *= 1.1;
     float d;
@@ -103,7 +134,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     rand(floor(12.*iTime)/12.*c.xx, r);
     r *= 2.*pi;
     
-    mat2 R = mat2(cos(r), sin(r), -sin(r), cos(r));
+    R = mat2(cos(r), sin(r), -sin(r), cos(r));
     
     float n;
     mfnoise(R*uv, 2., 1.e4, .55, n);
@@ -117,20 +148,14 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     col = mix(col, c.yyy, 1.1*sm(n/25.));
     col = mix(col, c.yyy, sm(n));
     
-    vec2 y = vec2(length(uv),atan(uv.y,uv.x));
     float bound;
     mfnoise(y.y*c.xx-1337., 1., 1.e2, .65, bound);
     bound = .5+.5*bound;
-    bound = mix(0., .55, clamp(bound*iTime,0.,1.));
+    bound = mix(0., .55, clamp((bound*iTime-spb)/spb,0.,1.));
     
     lfnoise(length(uv)*c.xx, r);
     r = .5+.5*r;
     palette(r, c1);
-    
-    const float bpm = 136.,
-        spb = 60./bpm;
-    float scale = mod(iTime,spb)-.5*spb;
-    scale = smoothstep(-.5*spb, -.1*spb, scale)*(1.-smoothstep(.1*spb, .5*spb, scale));
     
     col = mix(mix(col, 2.*col+mix(2.*c1, 2.-2.*c1, scale), sm(n/125.)), col, sm(-length(uv)+bound));
     col = mix(mix(col, 2.*c1, sm(n/5.)), col, sm(4.*(-length(uv)+bound)));
