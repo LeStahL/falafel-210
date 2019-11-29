@@ -1,0 +1,10 @@
+{
+    "scenes": [
+        {
+            "name": "Vortex Scene",
+            "prefix": "vortexlogo",
+            "t_end": 100,
+            "t_start": 0
+        }
+    ]
+}
