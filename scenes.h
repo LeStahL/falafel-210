@@ -1,14 +1,17 @@
 #ifndef SCENES_HEADER
 #define SCENES_HEADER
 
-#define t_vortexlogo (0)
+#define t_leaf (0)
+#define t_vortexlogo (30)
 #define duration (100)
 
 const double start_times[] = {
+    t_leaf,
     t_vortexlogo,
 };
 
 const char *scene_names[] = {
+    "Leaf",
     "Vortex Scene",
 };
 

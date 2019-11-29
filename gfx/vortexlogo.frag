@@ -176,11 +176,15 @@ void colorize(in vec2 uv, inout vec3 col)
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 uv = (fragCoord-.5*iResolution.xy)/iResolution.yy;
-
+    
     scale = mod(iTime,spb)-.5*spb;
     scale = smoothstep(-.3*spb, -.1*spb, scale)*(1.-smoothstep(.1*spb, .3*spb, scale));
     nbeats = (iTime-mod(iTime, spb))/spb;
-    
+
+    float ra;
+    rand(nbeats*c.xx, ra);
+    if(iTime > 40.*spb) uv /= 1.+4.*ra;
+
     vec3 o = c.yyx + uv.x*c.xyy + uv.y * c.yxy,
         dir = c.yyz+.1*c.yxy;
     float d;
@@ -191,7 +195,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         d = -(o.z-i*.1)/dir.z;
         vec3 x = o + d * dir;
         float r;
-        lfnoise(iTime*c.xx, r);
+        lfnoise(iTime*c.xx-x.z, r);
         float phi = mix(0.,pi*r, clamp((iTime-20.*spb)/spb, 0.,1.)*(1.-clamp((iTime-24.*spb)/spb,0.,1.)));
         mat2 R = mat2(cos(phi), sin(phi), -sin(phi), cos(phi));
         vec2 dx;

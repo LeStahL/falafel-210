@@ -1,10 +1,16 @@
 {
     "scenes": [
         {
+            "name": "Leaf",
+            "prefix": "leaf",
+            "t_end": 30,
+            "t_start": 0
+        },
+        {
             "name": "Vortex Scene",
             "prefix": "vortexlogo",
             "t_end": 100,
-            "t_start": 0
+            "t_start": 30
         }
     ]
 }

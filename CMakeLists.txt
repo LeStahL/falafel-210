@@ -36,6 +36,7 @@ find_package(Qt5 COMPONENTS Widgets)
 set(COMMON_HEADERS config_types.h config.h glext.h engine/platform.h engine/renderer.h engine/shader.h engine/loader.h engine/orchestrator.h)
 set(SFX_SHADER sfx.frag)
 set(SHADER_FILES
+        gfx/leaf.frag
         gfx/vortexlogo.frag
         gfx/load.frag
         gfx/ocean.frag

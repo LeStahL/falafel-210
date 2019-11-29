@@ -1,5 +1,14 @@
+#version 130
+
+uniform float iTime;
+uniform vec2 iResolution;
+
 const vec3 c = vec3(1.,0.,-1.);
 const float pi = acos(-1.);
+
+const float bpm = 136.,
+        spb = 60./bpm;
+float scale, nbeats;
 
 void rand(in vec2 x, out float n)
 {
@@ -152,6 +161,9 @@ void add(in vec2 sda, in vec2 sdb, out vec2 sdf)
 
 void scene(in vec3 x, out vec2 sdf)
 {
+    x.y -= .3*iTime;
+    x.x -= 100.;
+    
  	float n;
     mfnoise(x.xy, 1., 1.e2, .45, n);
     
@@ -162,11 +174,29 @@ void scene(in vec3 x, out vec2 sdf)
     v = abs(v/12.)-.001;
     
     float d;
-    zextrude(x.z, -v, .001, d);
-    smoothmin(d, x.z, .02, d);
-    
+    zextrude(x.z, -v, .01*scale, d);
+    smoothmin(d, x.z, mix(.02,.06,scale), d);
     
     sdf = vec2(d, 1.);
+    
+    for(float i = 1.; i<=2.; i+=1.)
+    {
+    dsmoothvoronoi(i*24.*(x.xy-.005*n), v, vi);
+    v = abs(v/24.)-.0005;
+    
+    zextrude(x.z, -v, .01*scale, d);
+    smoothmin(d, sdf.x, mix(.01,.03/i,scale), d);
+    
+    add(sdf, vec2(d, 1.), sdf);
+    }
+    
+    
+    float n1;
+    mfnoise(x.xy, 3.,5.e3, .15, n1);
+    n1 = .5+.5*n1;
+    n1 *= smoothstep(-.3,.3,abs(x.x));
+    n1 = abs(n1)-.03;
+    sdf.x -= 1.3*n1;
 }
 
 void normal(in vec3 x, out vec3 n, in float dx)
@@ -188,11 +218,89 @@ float sm(in float d)
     return smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d);
 }
 
+void palette(in float scale, out vec3 col)
+{
+    const int N = 8;
+    const vec3 colors[N] = vec3[N](
+            vec3(0.88,0.01,0.42),
+            vec3(0.36,0.04,0.47),
+            vec3(0.41,0.26,0.91),
+            vec3(0.18,0.82,0.82),
+            vec3(0.37,0.95,0.18),
+        	vec3(0.79,0.84,0.06),
+        	vec3(0.89,0.64,0.04),
+        	vec3(0.93,0.35,0.02)
+    );
+	float index = floor(scale*float(N)), 
+        remainder = scale*float(N)-index;
+    col = mix(colors[int(index)],colors[int(index)+1], remainder);
+}
+
+void colorize(in vec2 uv, out vec3 col)
+{
+    uv.y -= .3*iTime;
+    
+    float n;
+    mfnoise(uv, 1., 1.e2, .45, n);
+    
+    float v;
+    vec2 vi;
+    
+    dsmoothvoronoi(12.*(uv-.01*n), v, vi);
+    v = abs(v/12.)-.001;
+    
+    vec3 c1;
+    float la;
+    lfnoise(uv-.1*n, la);
+    palette(la, c1);
+    
+    col = c1;
+    col = mix(col, 2.*col, abs(v)-.001);
+    
+    dsmoothvoronoi(24.*(uv-.005*n), v, vi);
+    v = abs(v/24.)-.001;
+    
+    col = mix(col, 2.*col, abs(v)-.001);
+    
+    float na;
+    lfnoise(iTime*c.xx, na);
+    na = .5+.5*na;
+    
+    palette(na, c1);
+    col = mix(col, c1, sm(v));
+    
+    float n1;
+    mfnoise(uv, 3.,5.e3, .25, n1);
+    n1 = .5+.5*n1;
+    col = mix(col, 2.*col, n1);
+}
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 uv = (fragCoord-.5*iResolution.xy)/iResolution.yy,
         s;
-    vec3 o0 = c.yyx,
+    
+    uv = vec2(length(uv), (1./2.*atan(uv.x,uv.y)));
+    
+    scale = mod(iTime,spb)-.5*spb;
+    scale = smoothstep(-.3*spb, -.1*spb, scale)*(1.-smoothstep(.1*spb, .3*spb, scale));
+    nbeats = (iTime-mod(iTime, spb))/spb;
+
+    float ra;
+    rand(nbeats*c.xx, ra);
+    uv.x += .1+.1*ra;
+    
+    uv *= .5+ra;
+    float dp = pi/floor(3.+8.*ra);
+    uv.y = abs(mod(uv.y,dp)-.5*dp);
+    dp = .2+.2*ra;
+    //uv.x = abs(mod(uv.x,dp)-.5*dp);
+    
+    float phi = pi/8.*ra+.03*scale*scale*scale;
+    mat2 R = mat2(cos(phi), sin(phi), -sin(phi), cos(phi));
+    uv = R* uv;
+    
+    vec3 o0 = c.yyx+.1*c.yxy,
         o = o0,
         r = c.xyy,
         t = c.yyy, 
@@ -209,7 +317,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     t = uv.x * r + uv.y * u;
     dir = normalize(t-o);
     
-    float d = .0;
+    float d = -(o.z-.01)/dir.z;
     
     // Raymarch branch
     for(i = 0; i<N; ++i)
@@ -243,23 +351,39 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                 + 1.4*col*pow(abs(dot(reflect(l,n),dir)),2.);
         }
         
-        if(s.y == 1.) // Glowshit
+        else if(s.y == 1.) // Glowshit
         {
-            col = vec3(0.20,0.99,0.04);
-            col = mix(col, vec3(0.22,0.31,0.71), clamp(.5*abs(dot(n,c.xxx)),0.,1.));
+            colorize(x.xy-x.z, col);
+            vec3 c1;
+            
+            vec2 cc;
+            lfnoise(x.z+iTime*c.xx+x.z, cc.x);
+            lfnoise(x.z+2.*iTime*c.xx+1337., cc.y);
+            cc = .5*c.xx+.5*cc;
+            
+            palette(cc.x, c1);
+            col = mix(col, c1, clamp(.5*abs(dot(n,c.xxx)),0.,1.));
+			palette(cc.y, c1);
+            c1 *= c1;
+            col = mix(col, c1, clamp(.5*abs(dot(n,c.xxy)),0.,1.));
             col = .1*col 
                 + .2*col*dot(l, n)
                 + 1.4*col*pow(abs(dot(reflect(l,n),dir)),2.);
         }
-        if(s.y == 2.) // Glowshit 2
+        else if(s.y == 2.) // Glowshit 2
         {
             col = vec3(0.27,0.04,0.73);
             col = mix(col, vec3(0.22,0.31,0.71), clamp(.5*abs(dot(n,c.xxx)),0.,1.));
             col = .1*col 
                 + .2*col*dot(l, n)
-                + 1.4*col*pow(abs(dot(reflect(l,n),dir)),2.);
+                + .4*col*pow(abs(dot(reflect(l,n),dir)),2.);
         }
     }
     
     fragColor = vec4(col,1.0);
+}
+
+void main()
+{
+    mainImage(gl_FragColor, gl_FragCoord.xy);
 }
