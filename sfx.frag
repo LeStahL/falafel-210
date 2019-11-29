@@ -17,8 +17,8 @@ float linmix(float x, float a, float b, float y0, float y1) { return mix(y0,y1,c
 float s_atan(float a) { return .636 * atan(a); }
 
 #define NTIME 2
-const float pos_B[2] = float[2](0.,52.);
-const float pos_t[2] = float[2](0.,91.7647);
+const float pos_B[2] = float[2](0.,56.);
+const float pos_t[2] = float[2](0.,98.8235);
 const float pos_BPS[1] = float[1](.5667);
 const float pos_SPB[1] = float[1](1.7646);
 float BPS, SPB, BT;
@@ -52,6 +52,12 @@ float lpnoise(float t, float fq)
     float tt = fract(t);
     float tn = t - tt;
     return mix(pseudorandom(floor(tn) / fq), pseudorandom(floor(tn + 1.0) / fq), smstep(0.0, 1.0, tt));
+}
+
+float reverb_phase(float t, float amt)
+{
+    float r = lpnoise(t, 100.0) + 0.2*lpnoise(t, 550.0) + 0.1*lpnoise(t, 1050.0)*exp(-5.*t);
+    return amt * r;
 }
 
 float env_AHDSR(float x, float L, float A, float H, float D, float S, float R)
@@ -190,6 +196,14 @@ float bandpassBPsaw01(float time, float f, float tL, float vel, float fcenter, f
     return s_atan(M*M*y); // I DO NOT CARE ANYMORE
 }
 
+float protokick(float t, float f_start, float f_end, float fdecay, float hold, float decay, float drive, float detune, float rev_amount, float rev_hold, float rev_decay, float rev_drive)
+{
+    float phi = drop_phase(t, fdecay, f_start, f_end);
+    float rev_phi = phi + reverb_phase(t, 1.);
+    return clamp(drive*.5*(_sin(phi)+_sin((1.-detune)*phi)),-1.,1.) * exp(-max(t-hold, 0.)/decay)
+         + rev_amount*clamp(rev_drive*.5*(_sin(rev_phi)+_sin((1.-detune)*rev_phi)),-1.,1.) * exp(-max(t-rev_hold, 0.)/rev_decay);
+}
+
 float _HCybHHClENV0(float t){return t <=.004? linmix(t,250.,0.,0.,1.):t <=.032? linmix(t,35.7143,-.1429,1.,0.):0.;}
 float _HCybHHClENV1(float t){return t <=.009? linmix(t,111.1111,0.,0.,1.):t <=.06? linmix(t,19.6078,-.1765,1.,0.):0.;}
 float _HCybHHClENV2(float t){return t <=.15? linmix(t,6.6667,0.,6000.,1000.):t <=.4? linmix(t,4.,-.6,1000.,200.):200.;}
@@ -226,9 +240,9 @@ float rfloat(int off)
 }
 
 #define NTRK 10
-#define NMOD 175
-#define NPTN 15
-#define NNOT 278
+#define NMOD 201
+#define NPTN 16
+#define NNOT 280
 #define NDRM 48
 
 int trk_sep(int index)      {return int(rfloat(index));}
@@ -258,7 +272,7 @@ vec2 mainSynth(float time)
     float dL = 0.;
     float dR = 0.;
 
-    time = mod(time, 91.7647);
+    time = mod(time, 98.8235);
     
     int _it;
     for(_it = 0; _it < NTIME - 2 && pos_t[_it + 1] < time; _it++);
@@ -331,6 +345,14 @@ vec2 mainSynth(float time)
       +vel*1.3*(lpnoise(_t,10000.)*smstep(0.,.01,_t)*(1.-(1.-.13)*smstep(0.,.12,_t-.01))-.3*(1.00*lpnoise((_t-0.00),10000.)*smstep(0.,.01,(_t-0.00))*(1.-(1.-.13)*smstep(0.,.12,(_t-0.00)-.01))+6.10e-01*lpnoise((_t-1.20e-03),10000.)*smstep(0.,.01,(_t-1.20e-03))*(1.-(1.-.13)*smstep(0.,.12,(_t-1.20e-03)-.01))+3.72e-01*lpnoise((_t-2.40e-03),10000.)*smstep(0.,.01,(_t-2.40e-03))*(1.-(1.-.13)*smstep(0.,.12,(_t-2.40e-03)-.01))))*exp(-4.*max(_t-.25,0.));
                         amaydrumR = vel*vel*1.3*exp(-7.*max(_t2-.05+10.*vel,0.))*metalnoise(.6*_t2, .5, 2.)
       +vel*1.3*(lpnoise(_t,10000.)*smstep(0.,.01,_t)*(1.-(1.-.13)*smstep(0.,.12,_t-.01))-.3*(1.00*lpnoise((_t-0.00),10000.)*smstep(0.,.01,(_t-0.00))*(1.-(1.-.13)*smstep(0.,.12,(_t-0.00)-.01))+6.10e-01*lpnoise((_t-1.20e-03),10000.)*smstep(0.,.01,(_t-1.20e-03))*(1.-(1.-.13)*smstep(0.,.12,(_t-1.20e-03)-.01))+3.72e-01*lpnoise((_t-2.40e-03),10000.)*smstep(0.,.01,(_t-2.40e-03))*(1.-(1.-.13)*smstep(0.,.12,(_t-2.40e-03)-.01))))*exp(-4.*max(_t2-.25,0.));
+                    }
+                    else if(drum == 5){
+                        amaydrumL = vel*.9*protokick(_t,242.,55.,.036,.03,.0666,1.42,.02,.25,.01,.1,.4)
+      +.9*protokick(_t,3333.,340.,.008,0.,.01,2.,2.4,0.,.2,.3,1.)
+      +.64*((clamp(2.27*_tri(drop_phase(_t,.03,241.,72.)),-1.,1.)*(1.-smstep(-1e-3,0.,_t-.01))+.91*clamp(.9*_tri(drop_phase(_t,.03,241.,72.)+.91*lpnoise(_t,8164.)),-1.,1.)*exp(-20.76*_t)+.05*lpnoise(_t,10466.)*(1.-smstep(0.,.18,_t-.56))+.56*lpnoise(_t,7123.)*exp(-_t*5.45)+.11*lpnoise(_t,1134.)*exp(-_t*13.82))*smstep(0.,.004,_t));
+                        amaydrumR = vel*.9*protokick(_t2,242.,55.,.036,.03,.0666,1.42,.02,.25,.01,.1,.4)
+      +.9*protokick(_t2,3333.,340.,.008,0.,.01,2.,2.4,0.,.2,.3,1.)
+      +.64*((clamp(2.27*_tri(drop_phase(_t2,.03,241.,72.)),-1.,1.)*(1.-smstep(-1e-3,0.,_t2-.01))+.91*clamp(.9*_tri(drop_phase(_t2,.03,241.,72.)+.91*lpnoise(_t2,8164.)),-1.,1.)*exp(-20.76*_t2)+.05*lpnoise(_t2,10466.)*(1.-smstep(0.,.18,_t2-.56))+.56*lpnoise(_t2,7123.)*exp(-_t2*5.45)+.11*lpnoise(_t2,1134.)*exp(-_t2*13.82))*smstep(0.,.004,_t2));
                     }
                     else if(drum == 6){
                         amaydrumL = vel*(vel*(_HCybHHClENV0(_t)*(.13*sinshape(pseudorandom(_HCybHHClENV2(_t)*_t+1.*_HCybHHClENV0(_t)*(.5*lpnoise(_t,14142.828)+.5*lpnoise(_t,.463*14142.828))),_HCybHHClENV3(_t),3.))+_HCybHHClENV1(_t)*(.04*(.5*lpnoise(_t,14142.828)+.5*lpnoise(_t,.463*14142.828)))));
@@ -467,7 +489,7 @@ env = theta(Bprog)*pow(1.-smstep(Boff-rel, Boff, B),.3);
             }
         }
     }
-    return .3 * sidechain * vec2(s_atan(sL), s_atan(sR)) + .8 * vec2(s_atan(dL), s_atan(dR));
+    return .3 * sidechain * vec2(s_atan(sL), s_atan(sR)) + .75 * vec2(s_atan(dL), s_atan(dR));
 }
 
 void main()
