@@ -167,6 +167,8 @@ void colorize(in vec2 uv, inout vec3 col)
     col = mix(col, c1, sm((abs(length(uv)-.55)-.003)/mix(1.,10.,scale))/mix(1.,10.,1.-scale)); // circle outline
     col = mix(col, 4.*c1, sm((abs(abs(d)-.01)-.001))/mix(1.,10.,1.-scale)); // vortex outline
     col *= mix(1.2,.8, clamp((iTime-13.*spb)/spb,0.,1.));
+    
+    col = mix(col, c.yyy, clamp(length(col-vec3(0.40,0.74,0.13)),0.,1.));
     //c2 = mix(col, mix(c2, col, r), clamp((iTime-14.*spb)/spb, 0.,1.));
 }
 
