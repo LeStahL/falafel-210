@@ -242,7 +242,12 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     scale = mod(iTime,spb)-.5*spb;
     scale = smoothstep(-.3*spb, -.1*spb, scale)*(1.-smoothstep(.1*spb, .3*spb, scale));
     nbeats = (iTime-mod(iTime, spb))/spb;
+
+    uv *= mix(1., 1.1, scale*scale*scale);
     
+    float phi = .03*scale*scale*scale;
+    mat2 R = mat2(cos(phi), sin(phi), -sin(phi), cos(phi));
+    uv = R * uv;
     vec3 col = c.yyy;
     
     vec2 na;
@@ -262,9 +267,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     //fa *= 5.;
     
     vec3 c1, c2, c3;
-    palette(fa.x*na.x, c1);
-    palette(fa.y*na.y, c2);
-    palette(fa.z, c3);
+    palette(4.*fa.x*na.x, c1);
+    palette(3.*fa.y*na.y, c2);
+    palette(2.*fa.z*na.x, c3);
     
     col = mix(c.yyy, c2, fa.x*fa.y*fa.z);
     col = mix(col, c3, fa.y*fa.x);
@@ -272,8 +277,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     
     col *= 3.;
     
-    col = mix(col, c.yyy, sm((abs(fa.y)-.2*scale)/12.));
-    
+    col = mix(col, 2.*col, sm((abs(fa.y)-.2*scale)/12.));
+//     col = mix(col, c1, sm(length(col)-.5));
     fragColor = vec4(clamp(col,0.,1.),1.0);
 }
 
