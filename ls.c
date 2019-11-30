@@ -16,14 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define DEBUG // Shader debug i/o
+// #define DEBUG // Shader debug i/o
 // #define DEBUG_SHADER // Shader compile and link errors
 // #define MIDI // APC40 mkII controls
 // #define RECORD // Compile in recording capabilities
 
 #define DEMO
 
-const char *demoname = "Falafel210/Team210";
+const char *demoname = "Has Not Been/Team210";
 unsigned int muted = 0.;
 
 int _fltused = 0;
