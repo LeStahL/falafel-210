@@ -3,16 +3,19 @@
 
 #define t_leaf (0)
 #define t_vortexlogo (30)
+#define t_fractal (70)
 #define duration (100)
 
 const double start_times[] = {
     t_leaf,
     t_vortexlogo,
+    t_fractal,
 };
 
 const char *scene_names[] = {
     "Leaf",
     "Vortex Scene",
+    "Fractal",
 };
 
 const unsigned int nscenes = ARRAYSIZE(start_times);

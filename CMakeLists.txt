@@ -39,20 +39,9 @@ set(SHADER_FILES
         gfx/leaf.frag
         gfx/vortexlogo.frag
         gfx/load.frag
-        gfx/ocean.frag
-        gfx/logo210.frag
-        gfx/graffiti.frag
-        gfx/starsky.frag
         gfx/text.frag
         gfx/post.frag
-        gfx/deadline.frag
-        gfx/hydrant.frag
-        gfx/watercubes.frag
-        gfx/glitchcity.frag
-        gfx/greetings.frag
         gfx/fractal.frag
-        gfx/voronoinet.frag
-        gfx/volclouds.frag
 )
 set(SHADER_SYMBOLS_PATH gfx/symbols/)
 set(STRINGS_FILE font/strings.txt)
