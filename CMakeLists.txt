@@ -17,7 +17,7 @@
 
 cmake_minimum_required(VERSION 3.12)
 
-project(falafel210)
+project(hasnotbeen)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Configurables
@@ -77,7 +77,7 @@ add_custom_target(texture_packing
     BYPRODUCTS ${FONT_HEADER}
 )
 
-add_executable(falafel210
+add_executable(hasnotbeen
     ls.c
     ${COMMON_HEADERS}
     ${DEMO_HEADERS}
@@ -86,34 +86,34 @@ add_executable(falafel210
     ${FRAGMENT_SHADERS}
     ${SHADER_FILES}
 )
-add_dependencies(falafel210 minify_sfx)
-add_dependencies(falafel210 minify_shaders)
-add_dependencies(falafel210 texture_packing)
+add_dependencies(hasnotbeen minify_sfx)
+add_dependencies(hasnotbeen minify_shaders)
+add_dependencies(hasnotbeen texture_packing)
 
-target_include_directories(falafel210 SYSTEM PRIVATE "${OPENGL_INCLUDE_DIR}")
+target_include_directories(hasnotbeen SYSTEM PRIVATE "${OPENGL_INCLUDE_DIR}")
 
-target_link_libraries(falafel210 OpenGL::GL)
+target_link_libraries(hasnotbeen OpenGL::GL)
 
 if(MSVC)
-    set_target_properties(falafel210 PROPERTIES LINK_FLAGS "/ENTRY:demo /SUBSYSTEM:Windows /OPT:REF /OPT:ICF=10 /VERBOSE /NODEFAULTLIB")
-    target_compile_options(falafel210 PRIVATE /Gy /O1 /fp:fast /GR- /GS- /MT )
+    set_target_properties(hasnotbeen PROPERTIES LINK_FLAGS "/ENTRY:demo /SUBSYSTEM:Windows /OPT:REF /OPT:ICF=10 /VERBOSE /NODEFAULTLIB")
+    target_compile_options(hasnotbeen PRIVATE /Gy /O1 /fp:fast /GR- /GS- /MT )
 
     if (MSVC_VERSION GREATER_EQUAL 1910) # VS2017
-        target_link_libraries(falafel210 User32.lib Winmm.lib ucrt.lib msvcrt.lib vcruntime.lib Vfw32.lib)
+        target_link_libraries(hasnotbeen User32.lib Winmm.lib ucrt.lib msvcrt.lib vcruntime.lib Vfw32.lib)
     else()
         # for debug output: User32.lib ucrt.lib msvcrt.lib
-        target_link_libraries(falafel210 User32.lib Winmm.lib ucrt.lib msvcrt.lib)
+        target_link_libraries(hasnotbeen User32.lib Winmm.lib ucrt.lib msvcrt.lib)
     endif()
 
     if (CMAKE_SIZEOF_VOID_P EQUAL 4 AND MINIFY_64K AND (MSVC_IDE OR CMAKE_BUILD_TYPE STREQUAL "Release"))
-        target_compile_definitions(falafel210 PRIVATE "$<$<CONFIG:RELEASE>:MINIFY_64K>")
+        target_compile_definitions(hasnotbeen PRIVATE "$<$<CONFIG:RELEASE>:MINIFY_64K>")
         find_program(KKRUNCHY_K7 kkrunchy_k7.exe HINTS "${PROJECT_BINARY_DIR}" "${PROJECT_SOURCE_DIR}/bin")
-        add_custom_command(TARGET falafel210 COMMAND "$<$<CONFIG:RELEASE>:${KKRUNCHY_K7}>" ARGS --best "$<TARGET_FILE:falafel210>" --out "$<TARGET_FILE_DIR:falafel210>/falafel210c.exe" POST_BUILD)
+        add_custom_command(TARGET hasnotbeen COMMAND "$<$<CONFIG:RELEASE>:${KKRUNCHY_K7}>" ARGS --best "$<TARGET_FILE:hasnotbeen>" --out "$<TARGET_FILE_DIR:hasnotbeen>/hasnotbeenc.exe" POST_BUILD)
     endif()
 else()
     find_package(SDL2 REQUIRED)
-    target_include_directories(falafel210 SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
-    target_link_libraries(falafel210 ${SDL2_LIBRARIES})
+    target_include_directories(hasnotbeen SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+    target_link_libraries(hasnotbeen ${SDL2_LIBRARIES})
 endif()
 
 
