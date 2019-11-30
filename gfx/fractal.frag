@@ -279,6 +279,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     
     col = mix(col, 2.*col, sm((abs(fa.y)-.2*scale)/12.));
 //     col = mix(col, c1, sm(length(col)-.5));
+    col = mix(col, c.yyy, clamp(iTime-28.,0.,1.));
+
     fragColor = vec4(clamp(col,0.,1.),1.0);
 }
 

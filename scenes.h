@@ -2,7 +2,7 @@
 #define SCENES_HEADER
 
 #define t_leaf (0)
-#define t_vortexlogo (30)
+#define t_vortexlogo (28.200000762939453)
 #define t_fractal (70)
 #define duration (100)
 

@@ -117,6 +117,23 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         new.gba = mix(new.gba, c.xxx, sm(d));
     }
     
+    if(iTime < 20.)
+    {
+        float da;
+        vec3 c_1 = vec3(1.00,0.33,0.38),
+            c_2 = vec3(0.94,0.91,0.60);
+//             
+        float sc = smoothstep(10.,11.,iTime)*(1.-smoothstep(14., 15., iTime));
+//         
+        dstring(uv-vec2(-.55,.025), 9., .03, d);
+        dstring(uv-vec2(-.55,-.025), 2., .03, da);
+        d = min(d, da);
+        d = mix(1., d, sc);
+        new.gba = mix(new.gba, c.yyy, sm(d-.11));
+        new.gba = mix(new.gba, c.xxx, sm(d));
+        new.gba = mix(new.gba, c.xxx, sm(abs(d-.109)-.002));
+    }
+    
 //     if(iTime < 20.)
 //     {
 //         float sc = clamp(iTime-10.,0.,1.)*(1.-clamp(iTime-18.,0.,1.)),

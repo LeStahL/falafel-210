@@ -3,14 +3,14 @@
         {
             "name": "Leaf",
             "prefix": "leaf",
-            "t_end": 30,
+            "t_end": 28.200000762939453,
             "t_start": 0
         },
         {
             "name": "Vortex Scene",
             "prefix": "vortexlogo",
             "t_end": 70,
-            "t_start": 30
+            "t_start": 28.200000762939453
         },
         {
             "name": "Fractal",
