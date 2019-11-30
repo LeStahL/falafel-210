@@ -192,7 +192,7 @@ void scene(in vec3 x, out vec2 sdf)
     
     
     float n1;
-    mfnoise(x.xy, 3.,5.e3, .15, n1);
+    mfnoise(x.xy, 3.,5.e3, .25, n1);
     n1 = .5+.5*n1;
     n1 *= smoothstep(-.3,.3,abs(x.x));
     n1 = abs(n1)-.03;
@@ -270,7 +270,7 @@ void colorize(in vec2 uv, out vec3 col)
     col = mix(col, c1, sm(v));
     
     float n1;
-    mfnoise(uv, 3.,5.e3, .25, n1);
+    mfnoise(uv, 3.,5.e3, .55, n1);
     n1 = .5+.5*n1;
     col = mix(col, 2.*col, n1);
 }
@@ -290,7 +290,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     rand(nbeats*c.xx, ra);
     uv.x += .1+.1*ra;
     
-    uv *= .5+ra;
+    uv *= .2+ra;
     float dp = pi/floor(3.+8.*ra);
     uv.y = abs(mod(uv.y,dp)-.5*dp);
     dp = .2+.2*ra;
